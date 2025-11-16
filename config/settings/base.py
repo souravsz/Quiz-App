@@ -25,12 +25,20 @@ INSTALLED_APPS = [
     "apps.quiz",
     'rest_framework',
     'rest_framework_simplejwt',
+    'drf_spectacular',
 ]
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Quiz API',
+    'DESCRIPTION': 'API documentation for the Quiz Project',
+    'VERSION': '1.0.0',
 }
 
 MIDDLEWARE = [
