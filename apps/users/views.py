@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model
 
 from .serializers import RegisterSerializer, LoginSerializer , PromoteToAdminSerializer
+from .services import UserService
 from utlis.response import ResponseHandler
 
 User = get_user_model()
@@ -19,11 +20,17 @@ class RegisterView(generics.GenericAPIView):
         
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
-            return ResponseHandler.success(
-                data={"username": user.username, "id": user.id},
-                message="User created successfully"
-            )
+            try:
+                user = UserService.create_user(
+                    username=serializer.validated_data['username'],
+                    password=serializer.validated_data['password']
+                )
+                return ResponseHandler.success(
+                    data={"username": user.username, "id": user.id},
+                    message="User created successfully"
+                )
+            except ValueError as e:
+                return ResponseHandler.error(error=str(e))
         return ResponseHandler.error(error=ResponseHandler.get_error_message(serializer.errors))
 
 
@@ -37,7 +44,14 @@ class LoginView(generics.GenericAPIView):
         
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            return ResponseHandler.success(data=serializer.validated_data, message="Login successful")
+            try:
+                tokens = UserService.authenticate_user(
+                    username=serializer.validated_data['username'],
+                    password=serializer.validated_data['password']
+                )
+                return ResponseHandler.success(data=tokens, message="Login successful")
+            except ValueError as e:
+                return ResponseHandler.error(error=str(e))
     
         return ResponseHandler.error(error=ResponseHandler.get_error_message(serializer.errors))
     
@@ -48,9 +62,7 @@ class PromoteToAdminView(generics.GenericAPIView):
 
     def post(self, request):
         try:
-            user = request.user
-            user.role = "ADMIN"
-            user.save()
+            user = UserService.promote_to_admin(request.user)
             return ResponseHandler.success(
                 data={"role": user.role},
                 message=f"{user.username} has been promoted to ADMIN"
