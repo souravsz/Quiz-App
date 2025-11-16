@@ -44,3 +44,31 @@ class Option(models.Model):
     
     def __str__(self):
         return f"{self.question.text[:30]}... - {self.text}"
+
+class Submission(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='submissions')
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='submissions')
+    attempted_count = models.IntegerField(default=0)
+    correct_count = models.IntegerField(default=0)
+    is_completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['user', 'quiz']
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.quiz.title}"
+
+class SubmissionAnswer(models.Model):
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='answers')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    selected_option = models.ForeignKey(Option, on_delete=models.CASCADE)
+    is_correct = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['submission', 'question']
+    
+    def __str__(self):
+        return f"{self.submission.user.username} - {self.question.text[:30]}..."
