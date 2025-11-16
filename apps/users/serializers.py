@@ -39,3 +39,10 @@ class LoginSerializer(serializers.Serializer):
             "refresh": str(refresh),
             "username": user.username
         }
+
+
+class PromoteToAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ["id", "role"]
+        read_only_fields = ["id", "role"]
